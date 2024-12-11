@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alertmanager-config
+  namespace: default
+data:
+  alertmanager.yml: |
+    global:
+      resolve_timeout: 5m
+
+    route:
+      receiver: sns-alerts
+
+    receivers:
+    - name: "sns-alert"
+      sns_configs:
+      - api_url: "https://sns.us-east-1.amazonaws.com/"
+        sigv4:
+          region: "us-east-1"   #AWS region
+        topic_arn: "arn:aws:sns:us-east-1:445567074844:kubernetes-alerts"   #SNS topic ARN
+        subject: "Prometheus Alert"
+        send_resolved: true

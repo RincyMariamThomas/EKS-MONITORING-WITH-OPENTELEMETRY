@@ -1,0 +1,43 @@
+apiVersion: v1
+data:
+  alertmanager-config.yaml: |
+    global:
+      resolve_timeout: 5m
+
+    route:
+      group_by: ['alertname']
+      group_wait: 10s
+      group_interval: 10s
+      repeat_interval: 1h
+      receiver: 'sns-alert'
+
+    receivers:
+      - name: 'sns-alert'
+        webhook_configs:
+          - url: 'http://sns-endpoint.amazonaws.com/arn:aws:sns:us-east-1:445567074844:kubernetes-alerts'
+  alertmanager.yml: |
+    global:
+      resolve_timeout: 5m
+
+    route:
+      receiver: sns-alerts
+
+    receivers:
+    - name: "sns-alert"
+      sns_configs:
+      - api_url: "https://sns.us-east-1.amazonaws.com/"
+        sigv4:
+          region: "us-east-1"   # Ensure this is correct for your AWS region
+        topic_arn: "arn:aws:sns:us-east-1:445567074844:kubernetes-alerts"   # Ensure this matches your SNS topic ARN
+        subject: "Prometheus Alert"   # Ensure subject is under 100 characters
+        send_resolved: true
+kind: ConfigMap
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"v1","data":{"alertmanager.yml":"global:\n  resolve_timeout: 5m\n\nroute:\n  receiver: sns-alerts\n\nreceivers:\n- name: \"sns-alert\"\n  sns_configs:\n  - api_url: \"https://sns.us-east-1.amazonaws.com/\"\n    sigv4:\n      region: \"us-east-1\"   # Ensure this is correct for your AWS region\n    topic_arn: \"arn:aws:sns:us-east-1:445567074844:kubernetes-alerts\"   # Ensure this matches your SNS topic ARN\n    subject: \"Prometheus Alert\"   # Ensure subject is under 100 characters\n    send_resolved: true\n"},"kind":"ConfigMap","metadata":{"annotations":{},"name":"alertmanager-config","namespace":"default"}}
+  creationTimestamp: "2024-12-10T23:32:03Z"
+  name: alertmanager-config
+  namespace: default
+  resourceVersion: "383253"
+  uid: fdfbc621-d975-42f4-ab67-49a84f52bcc5

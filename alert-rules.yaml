@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pod-restart-alert-rules
+  namespace: default
+  labels:
+    alerting: "true"
+data:
+  alert.rules: |
+    groups:
+      - name: pod-restart-alerts
+        rules:
+          - alert: PodRestartedTooManyTimes
+            expr: increase(kube_pod_container_status_restarts_total[5m]) > 1
+            for: 2m
+            labels:
+              severity: critical
+            annotations:
+              summary: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} has restarted more than 1 time in the last 5 minutes"
+              description: "The pod {{ $labels.pod }} has had more than 1 restart in the last 5 minutes. Investigate the issue."
